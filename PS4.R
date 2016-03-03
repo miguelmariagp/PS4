@@ -33,15 +33,17 @@ tab$VoteShare<-as.numeric(gsub("%","",tab$VoteShare))
 ########################################################
 
 #There are three types of data
-#Second, for negative percentages, strings include â
+#For negative percentages, strings include â
 
 #Hence, I use grep() to create a variable that identifies negative margins
 tab$NegShareMargin<-ifelse(1:dim(tab)[1] %in% grep("â",tab$VoteShareMargin),-1,1)
 
 #Now I start by making the characters associated with negative values look similar to the others
-tab$VoteShareMargin<-gsub(".*'","",tab$VoteShareMargin)
+tab$VoteShareMargin<-ifelse(nchar(tab$VoteShareMargin)>11,
+                            substr(tab$VoteShareMargin,10,16),tab$VoteShareMargin)
 
-#Next I extract everything before the first % sign and make it numeric
+
+#Next I extract everything after the first % sign and make it numeric
 tab$VoteShareMargin<-as.numeric(gsub("%.*","",tab$VoteShareMargin))
 
 #And finally I add the sign to the negative values
@@ -58,12 +60,9 @@ tab$Vote<-as.numeric(gsub(",","",tab$Vote))
 ########################################################
 tab$Turnout<-as.numeric(gsub("%","",tab$Turnout))
 
-######################################
-##NOTE: CAN'T FIND A PATTERN IN VOTEMARGIN SO I CAN CLEAN IT
-#####################################
 
 #Questions to visualize
-
+pdf("C:/Users/ststest/Dropbox/Spr16/Programming/HW4/PS4/Threeplots.pdf")
 ##########################################################
 #Did elections became more competitive with time?
 ##########################################################
@@ -117,7 +116,7 @@ mtext("Turnout (%)",side=4,line=3)
 legend("bottomright",legend=c("Votes for winner (log)", "Turnout (%)"),
         lwd=c(1,1.5), col=c("Navyblue","Gold"), bty="n", lty=c(NA,1),pch=c(16,NA))
 
-
+dev.off()
 
 
 
@@ -140,7 +139,6 @@ temp <- wikiURL %>%
 
 #The table we want is the second one on the page.
 tab2.list<-html_table(temp[3])
-tab2.list[[1]]
 #Transforming into dataframe and removing row 2 
 tab2<-data.frame(tab2.list[[1]])
 
@@ -150,7 +148,7 @@ tab2<-data.frame(tab2.list[[1]])
 library(stringr)
 
 #To extract the number of EC votes for the winner I first create the list with all numbers in each string
-WinnerECVotes<-str_extract_all(tab2$Winner,"\\(?[0-9]+\\)?")[[1]]
+WinnerECVotes<-str_extract_all(tab2$Winner,"\\(?[0-9]+\\)?")
 #And here I extract the first number of each object in the list, which is the number I want.
 #Note: For James Monroe, two votes are given. My approach captures the lower bound.
 tab2$WinnerECVotes<-as.numeric(sapply(WinnerECVotes, "[[", 1))
@@ -167,7 +165,6 @@ tab2$RUpECVotes<-laply(ECRunnerupVotes,function(x) max(as.numeric(x)))
 #Finally, to merge I need to clean the variable Election.year and I will use the same approach
 #used just above since in some cases the variable has more than one number/date
 ############
-tab2$Election.year
 Years<-str_extract_all(tab2$Election.year,"\\(?[0-9]+\\)?")
 tab2$Year<-laply(Years,function(x) max(as.numeric(x)))
 
